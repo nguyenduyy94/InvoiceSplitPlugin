@@ -12,4 +12,6 @@ export const workspaceSlice = createSlice({
     }
 });
 
+export const { setCurrentURL } = workspaceSlice.actions;
+
 export default workspaceSlice.reducer
