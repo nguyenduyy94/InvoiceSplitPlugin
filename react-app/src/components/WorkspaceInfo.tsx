@@ -5,7 +5,8 @@ const WorkspaceInfo = () => {
     const currentURL = useSelector((state:any) => state.workspace ? state.workspace.currentURL : null);
     return (
         <div>
-            Current URL : {currentURL}
+            - Current URL : {currentURL}
+            
         </div>
     )
 };

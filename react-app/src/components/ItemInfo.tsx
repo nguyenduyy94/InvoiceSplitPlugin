@@ -1,4 +1,4 @@
-import React from "react"
+import React, {useState} from "react"
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
@@ -10,69 +10,87 @@ import Toolbar from "@mui/material/Toolbar";
 import {Typography} from "@mui/material";
 import Button from "@mui/material/Button";
 import {Item} from "../models/Item";
+import {
+    DataGrid,
+    GridCellParams, GridColumns,
+    GridRowModel,
+    GridSelectionModel,
+    GridToolbarContainer,
+    useGridApiRef
+} from "@mui/x-data-grid";
+import {Customer} from "../models/Customer";
 
 interface ItemInfoProps {
 
 }
 
 
-const rows:Item[] = [
-    {name: "Item 1", quantity: 10, code: "QWERTY1"},
-    {name: "Item 2", quantity: 8, code: "QWERTY2"},
-    {name: "Item 3", quantity: 7, code: "QWERTY3"},
-
-];
-
-
-interface EnhancedTableToolbarProps {
+interface CustomToolbarProps {
+    onAdd:()=>void,
+    onRemove:()=>void
 }
 
-const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
-    return (
-        <Toolbar>
-
-            <Button>Import</Button>
-            <Button>Add</Button>
-        </Toolbar>
-    );
-};
+const CustomToolbar = (cf:CustomToolbarProps) => {
+    return () => (
+        <>
+            <Typography
+                variant="h6"
+                ml={2}
+            >
+                Items
+            </Typography>
+            <GridToolbarContainer>
+                <Button onClick={cf.onAdd}> Add </Button>
+                <Button onClick={cf.onRemove}> Remove </Button>
+            </GridToolbarContainer>
+        </>
+    )
+}
 
 const ItemInfo = (props:ItemInfoProps) => {
-  return (
-      <>
-          <Typography
-              variant="h6"
-          >
-              Items
-          </Typography>
-          <EnhancedTableToolbar/>
-          <TableContainer component={Paper}>
-              <Table sx={{minWidth: 650}} aria-label="simple table">
-                  <TableHead>
-                      <TableRow>
-                          <TableCell>Code</TableCell>
-                          <TableCell align="right">Name</TableCell>
-                          <TableCell align="right">Quantity</TableCell>
-                      </TableRow>
-                  </TableHead>
-                  <TableBody>
-                      {rows.map((row) => (
-                          <TableRow
-                              key={row.code}
-                              sx={{'&:last-child td, &:last-child th': {border: 0}}}
-                          >
-                              <TableCell component="th" scope="row">
-                                  {row.code}
-                              </TableCell>
-                              <TableCell align="right">{row.name}</TableCell>
-                              <TableCell align="right">{row.quantity}</TableCell>
-                          </TableRow>
-                      ))}
-                  </TableBody>
-              </Table>
-          </TableContainer>
-      </>
-  )
+    const [items, setItems] = useState<Item[]>([]);
+    const [selectionModel, setSelectionModel] = React.useState<GridSelectionModel>([]);
+
+    const columns: GridColumns = [
+        { field: 'name', headerName: 'Name', width: 180, editable: true },
+        { field: 'code', headerName: 'Code ', width: 180, editable: true },
+        { field: 'quantity', headerName: 'Quantity ', width: 180, editable: true },
+    ];
+    return (
+        <>
+
+            <DataGrid
+                autoHeight // You have to either give a height to the container of the DataGrid or set the autoHeight prop of the DataGrid to true. Otherwise, it does not know which size to take.
+                disableSelectionOnClick
+                rows={items}
+                columns={columns}
+                experimentalFeatures={{ newEditingApi: true }}
+                isCellEditable={(params: GridCellParams) => true}
+                components={{
+                    Toolbar: CustomToolbar({
+                        onAdd: () => {
+                            setItems([...items, {id: new Date().getTime(), name: '', code: '' , quantity: 0}])
+                        },
+                        onRemove: () => {
+                            const newData = items.filter(item => selectionModel.indexOf(item.id) < 0);
+                            console.log("Remove " + JSON.stringify(selectionModel));
+                            setItems([...newData])
+                        }
+                    })
+                }}
+                processRowUpdate={(newRow: GridRowModel) => {
+                    const updatedRow = { ...newRow, isNew: false };
+                    setItems(items.map((row) => (row.id === newRow.id ? updatedRow : row)));
+                    return updatedRow;
+                }}
+                checkboxSelection={true}
+                selectionModel={selectionModel}
+                onSelectionModelChange={(newSelectionModel) => {
+                    setSelectionModel(newSelectionModel);
+                }}
+            />
+        </>
+    )
 };
 
 export default ItemInfo

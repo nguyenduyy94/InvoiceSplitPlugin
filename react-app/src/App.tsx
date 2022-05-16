@@ -17,6 +17,7 @@ import CustomerInfo from "./components/CustomerInfo";
 import ItemInfo from "./components/ItemInfo";
 import InvoiceInfo from "./components/InvoiceInfo";
 import {Paper} from "@mui/material";
+import {DataGrid, GridCellParams, GridColumns, GridRowsProp} from "@mui/x-data-grid";
 
 
 function App() {
