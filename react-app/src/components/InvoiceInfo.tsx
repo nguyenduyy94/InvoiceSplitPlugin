@@ -44,13 +44,13 @@ const InvoiceInfo = (props: InvoiceInfoProps) => {
         {
             customer: {id : 1, name: "Customer A", address: "Address abc dex"},
             items: [
-                {id: 0, code: "C1", name: "Item 1", quantity: 5}
+                {id: 0, code: "C1", name: "Item 1", quantity: 5, price: 0, unit : ''}
             ]
         },
         {
             customer: {id : 2, name: "Customer B", address: "Address abc dex"},
             items: [
-                {id: 0, code: "C1", name: "Item 1", quantity: 5}
+                {id: 0, code: "C1", name: "Item 1", quantity: 5, price: 0, unit : ''}
             ]
         }
     ]);

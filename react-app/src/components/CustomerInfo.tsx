@@ -13,6 +13,7 @@ import {
     GridToolbarContainer, MuiBaseEvent, MuiEvent,
     useGridApiRef
 } from "@mui/x-data-grid";
+import {Item} from "../models/Item";
 
 interface CustomerInfoProps {
 
@@ -35,13 +36,13 @@ const CustomToolbar = (cf:CustomToolbarProps) => {
         <GridToolbarContainer>
             <Button onClick={cf.onAdd}> Add </Button>
             <Button onClick={cf.onRemove}> Remove </Button>
-            <input id="file" type="file" hidden onChange={(e) => {
+            <input id="file" type="file_customer" hidden onChange={(e) => {
                 // @ts-ignore
                 cf.onImport(e.target.files[0])
             }}/>
             <Button onClick={() => {
                 // @ts-ignore
-                document.getElementById("file").click()
+                document.getElementById("file_customer").click()
             }}> Import </Button>
         </GridToolbarContainer>
         </>
@@ -61,9 +62,9 @@ const CustomerInfo = (props: CustomerInfoProps) => {
 
     return (
         <>
-
+            <div style={{height: 400}}>
             <DataGrid
-                autoHeight // You have to either give a height to the container of the DataGrid or set the autoHeight prop of the DataGrid to true. Otherwise, it does not know which size to take.
+                 // You have to either give a height to the container of the DataGrid or set the autoHeight prop of the DataGrid to true. Otherwise, it does not know which size to take.
                 disableSelectionOnClick
                 rows={customers}
                 columns={columns}
@@ -81,7 +82,7 @@ const CustomerInfo = (props: CustomerInfoProps) => {
                         },
                         onImport: (file:File) => {
                             readXlsxFile(file).then((rows) => {
-                                console.log("Read " + rows.length + " rows")
+                                console.log("Read " + rows.length + " rows");
                             })
                         }
 
@@ -98,6 +99,7 @@ const CustomerInfo = (props: CustomerInfoProps) => {
                     setSelectionModel(newSelectionModel);
                 }}
             />
+            </div>
         </>
     )
 };

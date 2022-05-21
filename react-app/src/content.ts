@@ -23,6 +23,11 @@ chrome.runtime.onMessage.addListener(
 );
 
 async function startFillForm(invoices:Invoice[], sendResponse:(response:Progress)=>void) {
+    if (window.location.hostname !== 'hoadon789.com') {
+        sendResponse({ error : "Invalid website", message: "Invalid website"})
+        return
+    }
+
     document.getElementsByTagName("a");
     // Begin fill data & feed back progress
     sendResponse({message: "Starting", percent: 0});

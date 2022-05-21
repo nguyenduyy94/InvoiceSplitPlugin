@@ -19,7 +19,7 @@ import {
     useGridApiRef
 } from "@mui/x-data-grid";
 import {Customer} from "../models/Customer";
-import readXlsxFile from 'read-excel-file'
+import readXlsxFile, {Row} from 'read-excel-file'
 
 interface ItemInfoProps {
 
@@ -32,7 +32,7 @@ interface CustomToolbarProps {
     onImport:(file:File)=>void,
 }
 
-const CustomToolbar = (cf:CustomToolbarProps) => {
+const CustomItemToolbar = (cf:CustomToolbarProps) => {
     return () => (
         <>
             <Typography
@@ -44,13 +44,13 @@ const CustomToolbar = (cf:CustomToolbarProps) => {
             <GridToolbarContainer>
                 <Button onClick={cf.onAdd}> Add </Button>
                 <Button onClick={cf.onRemove}> Remove </Button>
-                <input id="file" type="file" hidden onChange={(e) => {
+                <input id="file_item" type="file" hidden onChange={(e) => {
                     // @ts-ignore
                     cf.onImport(e.target.files[0])
                 }}/>
                 <Button onClick={() => {
                     // @ts-ignore
-                    document.getElementById("file").click()
+                    document.getElementById("file_item").click()
                 }}> Import </Button>
             </GridToolbarContainer>
         </>
@@ -65,21 +65,23 @@ const ItemInfo = (props:ItemInfoProps) => {
         { field: 'name', headerName: 'Name', width: 180, editable: true },
         { field: 'code', headerName: 'Code ', width: 180, editable: true },
         { field: 'quantity', headerName: 'Quantity ', width: 180, editable: true },
+        { field: 'price', headerName: 'Price ', width: 180, editable: true },
+        { field: 'unit', headerName: 'Unit ', width: 180, editable: true },
     ];
     return (
         <>
-
+            <div style={{height: 400}}>
             <DataGrid
-                autoHeight // You have to either give a height to the container of the DataGrid or set the autoHeight prop of the DataGrid to true. Otherwise, it does not know which size to take.
+                 // You have to either give a height to the container of the DataGrid or set the autoHeight prop of the DataGrid to true. Otherwise, it does not know which size to take.
                 disableSelectionOnClick
                 rows={items}
                 columns={columns}
                 experimentalFeatures={{ newEditingApi: true }}
                 isCellEditable={(params: GridCellParams) => true}
                 components={{
-                    Toolbar: CustomToolbar({
+                    Toolbar: CustomItemToolbar({
                         onAdd: () => {
-                            setItems([...items, {id: new Date().getTime(), name: '', code: '' , quantity: 0}])
+                            setItems([...items, {id: new Date().getTime(), name: '', code: '' , quantity: 0, price: 0, unit: ''}])
                         },
                         onRemove: () => {
                             const newData = items.filter(item => selectionModel.indexOf(item.id) < 0);
@@ -88,7 +90,22 @@ const ItemInfo = (props:ItemInfoProps) => {
                         },
                         onImport: (file:File) => {
                             readXlsxFile(file).then((rows) => {
-                                console.log("Read " + rows.length + " rows")
+                                console.log("Read " + rows.length + " items")
+                                const result = [];
+                                for (const row of rows) {
+                                    if (typeof row[0] === 'number') { // row with ID
+                                        const item:Item = {
+                                            id : row[0],
+                                            code: row[1].toString(),
+                                            name: row[2].toString(),
+                                            unit: row[3].toString(),
+                                            price: Number.parseFloat(row[4].toString()),
+                                            quantity: Number.parseInt(row[5].toString())
+                                        };
+                                        result.push(item)
+                                    }
+                                }
+                                setItems(result)
                             })
                         }
                     })
@@ -104,6 +121,7 @@ const ItemInfo = (props:ItemInfoProps) => {
                     setSelectionModel(newSelectionModel);
                 }}
             />
+            </div>
         </>
     )
 };
