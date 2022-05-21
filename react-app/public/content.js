@@ -1,31 +1,26 @@
 const port = chrome.runtime.connect();
 
 chrome.runtime.onMessage.addListener(
-    function(request, sender, sendResponse) {
+    async function (request, sender, sendResponse) {
         console.log(sender.tab ?
             "from a content script:" + sender.tab.url :
             "from the extension");
+        console.log(JSON.stringify(request));
+
         if (request.greeting === "hello")
             sendResponse({farewell: "goodbye"});
 
-        if (request.type === 'login') {
-            var aTags = document.getElementsByTagName("a");
-            var found;
-
-            for (var i = 0; i < aTags.length; i++) {
-                if (aTags[i].innerText.indexOf("Sign") >= 0) {
-                    found = aTags[i];
-                    break;
-                }
-            }
-
-            found.click()
-        }
-
-        if (request.type === 'getWorkspaceInfo') {
+        else if (request.type === 'getWorkspaceInfo') {
             // TODO :
+        } else if (request.type === 'startFillForm') {
+            await startFillForm(request.payload);
+            sendResponse("OK")
         }
     }
 );
+
+async function startFillForm(invoices) {
+    document.getElementsByTagName("a");
+}
 
 console.log('Content Script Injected!!');
