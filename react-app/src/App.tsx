@@ -20,6 +20,7 @@ import {Paper} from "@mui/material";
 import {DataGrid, GridCellParams, GridColumns, GridRowsProp} from "@mui/x-data-grid";
 import Alert from "@mui/material/Alert/Alert";
 import {Invoice} from "./models/Invoice";
+import {Progress} from "./models/Progress";
 
 
 const splitInvoice = (customers:Customer[], items:Item[]) => {
@@ -45,15 +46,21 @@ function App() {
     const [items, setItems] = useState<Item[]>([]);
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [progress, setProgress] = useState<Progress|null>(null);
+    const [enable, setEnable] = useState<boolean>(true);
+
     return (
         <Provider store={store}>
             <div className="App">
+                <Typography variant="h5">Step 1. Input Customer data</Typography>
                 <Paper style={{marginBottom: 10}}>
                     <CustomerInfo onChange={data => setCustomers(data)} />
                 </Paper>
+                <Typography variant="h5">Step 2. Input Items data</Typography>
                 <Paper style={{marginBottom: 10}}>
                     <ItemInfo onChange={data => setItems(data)}/>
                 </Paper>
+                <Typography variant="h5">Step 3. Split Invoices </Typography>
                 <Alert severity="info">
                     Press GENERATE to produce Invoices from Customer & Items table. Generated data will be used to fill forms automatically!
                     <div style={{height: '1em'}}/>
@@ -65,6 +72,38 @@ function App() {
                 <Paper style={{marginBottom: 10}}>
                     <InvoiceInfo invoices={invoices} />
                 </Paper>
+                <Typography variant="h5">Step 4. Start Auto Fill Form</Typography>
+                <div>
+                    <Alert severity="warning">
+                        For safety, please DON'T close this tab or perform any action on this tab after Start Auto Fill Form
+                        <div style={{height: "1em"}}/>
+                        <Button variant="contained" size={"small"} color="warning" disabled={invoices.length == 0 || !enable} onClick={e => {
+                            setEnable(false);
+                            chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+                                // @ts-ignore
+                                chrome.tabs.sendMessage(tabs[0].id, {type: "startFillForm", payload: invoices }, function (response:Progress) {
+                                    console.log("Response " + JSON.stringify(response));
+                                    setProgress(response)
+                                });
+                            });
+                        }}> Start Auto Fill Form </Button>
+                        {progress ? (
+                            <Typography variant="body2">{progress.message} - {progress.percent}% </Typography>
+                        ) : null}
+                        <Button size={"small"} onClick={e => {
+                            chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+                                // @ts-ignore
+                                chrome.tabs.sendMessage(tabs[0].id, {type: "stopFillForm", payload: invoices }, function (response:Progress) {
+                                    console.log("Response " + JSON.stringify(response));
+                                    setEnable(true);
+                                });
+                            });
+
+                        }}>Cancel</Button>
+                    </Alert>
+
+
+                </div>
             </div>
         </Provider>
     );

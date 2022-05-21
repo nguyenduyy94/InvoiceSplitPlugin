@@ -53,14 +53,11 @@ const InvoiceInfo = (props: InvoiceInfoProps) => {
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
     };
-    const [progress, setProgress] = useState<Progress|null>(null);
-    const [enable, setEnable] = useState<boolean>(true);
-
 
     return (
         <>
             <div>
-            <Typography variant="h6" ml={2}> Invoices</Typography>
+            <Typography variant="h6" ml={2}> Review Splitted Invoices</Typography>
             </div>
 
             {props.invoices.map((invoice:Invoice, index) => {
@@ -73,7 +70,7 @@ const InvoiceInfo = (props: InvoiceInfoProps) => {
                             <Typography variant="body1">{invoice.customer.name}</Typography>
                             <Typography variant="caption">{invoice.customer.address}</Typography>
                             <div style={{height: "1em"}}/>
-                            <div style={{height: 400}}>
+                            <div style={{height: 200}}>
                             <DataGrid
                                 // You have to either give a height to the container of the DataGrid or set the autoHeight prop of the DataGrid to true. Otherwise, it does not know which size to take.
                                 disableSelectionOnClick
@@ -81,6 +78,7 @@ const InvoiceInfo = (props: InvoiceInfoProps) => {
                                 columns={columns}
                                 experimentalFeatures={{ newEditingApi: true }}
                                 isCellEditable={(params: GridCellParams) => false}
+                                density="compact"
                             />
                             </div>
                         </Box>
@@ -88,27 +86,6 @@ const InvoiceInfo = (props: InvoiceInfoProps) => {
                     </div>
                 )
             })}
-            <div>
-                <Alert severity="warning">
-                    For safety, please DON'T close this tab or perform any action on this tab after Start Auto Fill Form
-                    <div style={{height: "1em"}}/>
-                    <Button variant="contained" size={"small"} color="warning" onClick={e => {
-                        setEnable(false);
-                        chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
-                            // @ts-ignore
-                            chrome.tabs.sendMessage(tabs[0].id, {type: "startFillForm", payload: invoices }, function (response:Progress) {
-                                console.log("Response " + JSON.stringify(response));
-                                setProgress(response)
-                            });
-                        });
-                    }}> Start Auto Fill Form </Button>
-                    {progress ? (
-                        <Typography variant="body2">{progress.message} - {progress.percent}% </Typography>
-                    ) : null}
-                </Alert>
-
-
-            </div>
         </>
     )
 };

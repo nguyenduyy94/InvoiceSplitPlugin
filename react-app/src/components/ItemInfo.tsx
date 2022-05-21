@@ -35,12 +35,12 @@ interface CustomToolbarProps {
 const CustomItemToolbar = (cf:CustomToolbarProps) => {
     return () => (
         <>
-            <Typography
-                variant="h6"
-                ml={2}
-            >
-                Items
-            </Typography>
+            {/*<Typography*/}
+            {/*    variant="h6"*/}
+            {/*    ml={2}*/}
+            {/*>*/}
+            {/*    Items*/}
+            {/*</Typography>*/}
             <GridToolbarContainer>
                 <Button onClick={cf.onAdd}> Add </Button>
                 <Button onClick={cf.onRemove}> Remove </Button>
@@ -70,7 +70,7 @@ const ItemInfo = (props:ItemInfoProps) => {
     ];
     return (
         <>
-            <div style={{height: 400}}>
+            <div style={{height: 300}}>
             <DataGrid
                  // You have to either give a height to the container of the DataGrid or set the autoHeight prop of the DataGrid to true. Otherwise, it does not know which size to take.
                 disableSelectionOnClick
@@ -123,6 +123,7 @@ const ItemInfo = (props:ItemInfoProps) => {
                 onSelectionModelChange={(newSelectionModel) => {
                     setSelectionModel(newSelectionModel);
                 }}
+                density="compact"
             />
             </div>
         </>
