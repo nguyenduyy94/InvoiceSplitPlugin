@@ -67,7 +67,7 @@ function App() {
                     <Button variant="contained" color={"info"} onClick={e => {
                         const invoices:Invoice[] = splitInvoice(customers, items);
                         setInvoices(invoices)
-                    }}> Generate </Button>
+                    }}> SPLIT </Button>
                 </Alert>
                 <Paper style={{marginBottom: 10}}>
                     <InvoiceInfo invoices={invoices} />
@@ -87,9 +87,6 @@ function App() {
                                 });
                             });
                         }}> Start Auto Fill Form </Button>
-                        {progress ? (
-                            <Typography variant="body2">{progress.message} - {progress.percent}% </Typography>
-                        ) : null}
                         <Button size={"small"} onClick={e => {
                             chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
                                 // @ts-ignore
@@ -101,8 +98,12 @@ function App() {
 
                         }}>Cancel</Button>
                     </Alert>
-
-
+                    {progress ? (
+                        <Alert severity={progress && !!progress.error ? "error" : "info"}>
+                            {progress.message} - {progress.percent}%
+                            {progress.error}
+                        </Alert>
+                    ) : null}
                 </div>
             </div>
         </Provider>

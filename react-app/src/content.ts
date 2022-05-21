@@ -24,7 +24,7 @@ chrome.runtime.onMessage.addListener(
 
 async function startFillForm(invoices:Invoice[], sendResponse:(response:Progress)=>void) {
     if (window.location.hostname !== 'hoadon789.com') {
-        sendResponse({ error : "Invalid website", message: "Invalid website"})
+        sendResponse({ error : "Invalid website", message: "Invalid website"});
         return
     }
 
