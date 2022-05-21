@@ -1,4 +1,4 @@
-import React, {ChangeEvent, ChangeEventHandler, useState} from "react"
+import React, {ChangeEvent, ChangeEventHandler, useEffect, useState} from "react"
 import {Customer} from "../models/Customer";
 import {Typography} from "@mui/material";
 import Toolbar from "@mui/material/Toolbar";
@@ -16,7 +16,7 @@ import {
 import {Item} from "../models/Item";
 
 interface CustomerInfoProps {
-
+    onChange: (customers:Customer[])=>void
 }
 
 interface CustomToolbarProps {
@@ -36,7 +36,7 @@ const CustomToolbar = (cf:CustomToolbarProps) => {
         <GridToolbarContainer>
             <Button onClick={cf.onAdd}> Add </Button>
             <Button onClick={cf.onRemove}> Remove </Button>
-            <input id="file" type="file_customer" hidden onChange={(e) => {
+            <input id="file_customer" type="file" hidden onChange={(e) => {
                 // @ts-ignore
                 cf.onImport(e.target.files[0])
             }}/>
@@ -74,15 +74,30 @@ const CustomerInfo = (props: CustomerInfoProps) => {
                     Toolbar: CustomToolbar({
                         onAdd: () => {
                             setCustomers([...customers, {id: new Date().getTime(), name: '', address: ''}])
+                            props.onChange(customers);
                         },
                         onRemove: () => {
                             const newData = customers.filter(item => selectionModel.indexOf(item.id) < 0);
                             console.log("Remove " + JSON.stringify(selectionModel));
                             setCustomers([...newData])
+                            props.onChange(customers);
                         },
                         onImport: (file:File) => {
                             readXlsxFile(file).then((rows) => {
-                                console.log("Read " + rows.length + " rows");
+                                console.log("Read " + rows.length + " customers");
+                                const result = [];
+                                for (const row of rows) {
+                                    if (typeof row[0] === 'number') { // row with ID
+                                        const customer:Customer = {
+                                            id : row[0],
+                                            name: row[1].toString(),
+                                            address: row[2].toString(),
+                                        };
+                                        result.push(customer)
+                                    }
+                                }
+                                setCustomers(result);
+                                props.onChange(result);
                             })
                         }
 

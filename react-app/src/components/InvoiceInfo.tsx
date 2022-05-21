@@ -24,7 +24,7 @@ import {Progress} from "../models/Progress";
 
 
 interface InvoiceInfoProps {
-
+    invoices: Invoice[]
 }
 
 interface CustomToolbarProps {
@@ -40,20 +40,6 @@ function a11yProps(index: number) {
 }
 
 const InvoiceInfo = (props: InvoiceInfoProps) => {
-    const [invoices, setInvoices] = useState<Invoice[]>([
-        {
-            customer: {id : 1, name: "Customer A", address: "Address abc dex"},
-            items: [
-                {id: 0, code: "C1", name: "Item 1", quantity: 5, price: 0, unit : ''}
-            ]
-        },
-        {
-            customer: {id : 2, name: "Customer B", address: "Address abc dex"},
-            items: [
-                {id: 0, code: "C1", name: "Item 1", quantity: 5, price: 0, unit : ''}
-            ]
-        }
-    ]);
 
     const [selectionModel, setSelectionModel] = React.useState<GridSelectionModel>([]);
 
@@ -75,16 +61,9 @@ const InvoiceInfo = (props: InvoiceInfoProps) => {
         <>
             <div>
             <Typography variant="h6" ml={2}> Invoices</Typography>
-                <Alert severity="info">
-                    Press GENERATE to produce Invoices from Customer & Items table. Generated data will be used to fill forms automatically!
-                    <div style={{height: '1em'}}/>
-                    <Button variant="contained" color={"info"} onClick={e => {
-
-                    }}> Generate </Button>
-                </Alert>
             </div>
 
-            {invoices.map((invoice:Invoice, index) => {
+            {props.invoices.map((invoice:Invoice, index) => {
                 return (
                     <div
                         id={`vertical-tabpanel-${index}`}
@@ -94,14 +73,16 @@ const InvoiceInfo = (props: InvoiceInfoProps) => {
                             <Typography variant="body1">{invoice.customer.name}</Typography>
                             <Typography variant="caption">{invoice.customer.address}</Typography>
                             <div style={{height: "1em"}}/>
+                            <div style={{height: 400}}>
                             <DataGrid
-                                autoHeight // You have to either give a height to the container of the DataGrid or set the autoHeight prop of the DataGrid to true. Otherwise, it does not know which size to take.
+                                // You have to either give a height to the container of the DataGrid or set the autoHeight prop of the DataGrid to true. Otherwise, it does not know which size to take.
                                 disableSelectionOnClick
                                 rows={invoice.items}
                                 columns={columns}
                                 experimentalFeatures={{ newEditingApi: true }}
                                 isCellEditable={(params: GridCellParams) => false}
                             />
+                            </div>
                         </Box>
 
                     </div>

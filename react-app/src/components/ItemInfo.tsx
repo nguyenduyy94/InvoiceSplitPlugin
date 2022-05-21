@@ -1,4 +1,4 @@
-import React, {useState} from "react"
+import React, {useEffect, useState} from "react"
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
@@ -22,7 +22,7 @@ import {Customer} from "../models/Customer";
 import readXlsxFile, {Row} from 'read-excel-file'
 
 interface ItemInfoProps {
-
+    onChange: (items:Item[])=>void;
 }
 
 
@@ -82,11 +82,13 @@ const ItemInfo = (props:ItemInfoProps) => {
                     Toolbar: CustomItemToolbar({
                         onAdd: () => {
                             setItems([...items, {id: new Date().getTime(), name: '', code: '' , quantity: 0, price: 0, unit: ''}])
+                            props.onChange(items);
                         },
                         onRemove: () => {
                             const newData = items.filter(item => selectionModel.indexOf(item.id) < 0);
                             console.log("Remove " + JSON.stringify(selectionModel));
                             setItems([...newData])
+                            props.onChange(items);
                         },
                         onImport: (file:File) => {
                             readXlsxFile(file).then((rows) => {
@@ -105,7 +107,8 @@ const ItemInfo = (props:ItemInfoProps) => {
                                         result.push(item)
                                     }
                                 }
-                                setItems(result)
+                                setItems(result);
+                                props.onChange(result);
                             })
                         }
                     })
