@@ -1,3 +1,6 @@
+import {Invoice} from "./models/Invoice";
+import {Progress} from "./models/Progress";
+
 const port = chrome.runtime.connect();
 
 chrome.runtime.onMessage.addListener(
@@ -13,14 +16,21 @@ chrome.runtime.onMessage.addListener(
         else if (request.type === 'getWorkspaceInfo') {
             // TODO :
         } else if (request.type === 'startFillForm') {
-            await startFillForm(request.payload);
+            await startFillForm(request.payload, sendResponse);
             sendResponse("OK")
         }
     }
 );
 
-async function startFillForm(invoices) {
+async function startFillForm(invoices:Invoice[], sendResponse:(response:Progress)=>void) {
     document.getElementsByTagName("a");
+    // Begin fill data & feed back progress
+    sendResponse({message: "Starting", percent: 0});
+
+    for (const invoice of invoices) {
+        const {customer, items} = invoice;
+        sendResponse({message: 'Customer ' + customer.name, percent: 1})
+    }
 }
 
 console.log('Content Script Injected!!');

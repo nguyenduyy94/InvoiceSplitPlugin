@@ -13,7 +13,6 @@ import {
     GridToolbarContainer, MuiBaseEvent, MuiEvent,
     useGridApiRef
 } from "@mui/x-data-grid";
-import UploadData = chrome.webRequest.UploadData;
 
 interface CustomerInfoProps {
 

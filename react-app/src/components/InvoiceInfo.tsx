@@ -20,6 +20,7 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
 import Alert from "@mui/material/Alert";
+import {Progress} from "../models/Progress";
 
 
 interface InvoiceInfoProps {
@@ -66,6 +67,9 @@ const InvoiceInfo = (props: InvoiceInfoProps) => {
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
     };
+    const [progress, setProgress] = useState<Progress|null>(null);
+    const [enable, setEnable] = useState<boolean>(true);
+
 
     return (
         <>
@@ -108,14 +112,18 @@ const InvoiceInfo = (props: InvoiceInfoProps) => {
                     For safety, please DON'T close this tab or perform any action on this tab after Start Auto Fill Form
                     <div style={{height: "1em"}}/>
                     <Button variant="contained" size={"small"} color="warning" onClick={e => {
-                        console.log("Click");
+                        setEnable(false);
                         chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
                             // @ts-ignore
-                            chrome.tabs.sendMessage(tabs[0].id, {type: "startFillForm", payload: invoices }, function (response) {
+                            chrome.tabs.sendMessage(tabs[0].id, {type: "startFillForm", payload: invoices }, function (response:Progress) {
                                 console.log("Response " + JSON.stringify(response));
+                                setProgress(response)
                             });
                         });
                     }}> Start Auto Fill Form </Button>
+                    {progress ? (
+                        <Typography variant="body2">{progress.message} - {progress.percent}% </Typography>
+                    ) : null}
                 </Alert>
 
 
