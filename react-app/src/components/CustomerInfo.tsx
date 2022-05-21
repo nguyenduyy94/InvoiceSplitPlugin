@@ -1,8 +1,10 @@
-import React, {useState} from "react"
+import React, {ChangeEvent, ChangeEventHandler, useState} from "react"
 import {Customer} from "../models/Customer";
 import {Typography} from "@mui/material";
 import Toolbar from "@mui/material/Toolbar";
 import Button from "@mui/material/Button";
+import readXlsxFile from 'read-excel-file'
+
 import {
     DataGrid, GridCallbackDetails, GridCellEditCommitParams,
     GridCellParams,
@@ -11,6 +13,7 @@ import {
     GridToolbarContainer, MuiBaseEvent, MuiEvent,
     useGridApiRef
 } from "@mui/x-data-grid";
+import UploadData = chrome.webRequest.UploadData;
 
 interface CustomerInfoProps {
 
@@ -18,7 +21,8 @@ interface CustomerInfoProps {
 
 interface CustomToolbarProps {
     onAdd:()=>void,
-    onRemove:()=>void
+    onRemove:()=>void,
+    onImport:(file:File)=>void,
 }
 
 const CustomToolbar = (cf:CustomToolbarProps) => {
@@ -32,6 +36,14 @@ const CustomToolbar = (cf:CustomToolbarProps) => {
         <GridToolbarContainer>
             <Button onClick={cf.onAdd}> Add </Button>
             <Button onClick={cf.onRemove}> Remove </Button>
+            <input id="file" type="file" hidden onChange={(e) => {
+                // @ts-ignore
+                cf.onImport(e.target.files[0])
+            }}/>
+            <Button onClick={() => {
+                // @ts-ignore
+                document.getElementById("file").click()
+            }}> Import </Button>
         </GridToolbarContainer>
         </>
     )
@@ -41,7 +53,6 @@ const CustomerInfo = (props: CustomerInfoProps) => {
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [selectionModel, setSelectionModel] = React.useState<GridSelectionModel>([]);
 
-    const apiRef = useGridApiRef();
 
     const columns: GridColumns = [
         { field: 'name', headerName: 'Name', width: 180, editable: true },
@@ -66,9 +77,15 @@ const CustomerInfo = (props: CustomerInfoProps) => {
                         },
                         onRemove: () => {
                             const newData = customers.filter(item => selectionModel.indexOf(item.id) < 0);
-                            console.log("Remove " + JSON.stringify(selectionModel))
+                            console.log("Remove " + JSON.stringify(selectionModel));
                             setCustomers([...newData])
+                        },
+                        onImport: (file:File) => {
+                            readXlsxFile(file).then((rows) => {
+                                console.log("Read " + rows.length + " rows")
+                            })
                         }
+
                     } )
                 }}
                 processRowUpdate={(newRow: GridRowModel) => {

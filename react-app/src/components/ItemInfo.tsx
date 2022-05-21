@@ -19,6 +19,7 @@ import {
     useGridApiRef
 } from "@mui/x-data-grid";
 import {Customer} from "../models/Customer";
+import readXlsxFile from 'read-excel-file'
 
 interface ItemInfoProps {
 
@@ -27,7 +28,8 @@ interface ItemInfoProps {
 
 interface CustomToolbarProps {
     onAdd:()=>void,
-    onRemove:()=>void
+    onRemove:()=>void,
+    onImport:(file:File)=>void,
 }
 
 const CustomToolbar = (cf:CustomToolbarProps) => {
@@ -42,6 +44,14 @@ const CustomToolbar = (cf:CustomToolbarProps) => {
             <GridToolbarContainer>
                 <Button onClick={cf.onAdd}> Add </Button>
                 <Button onClick={cf.onRemove}> Remove </Button>
+                <input id="file" type="file" hidden onChange={(e) => {
+                    // @ts-ignore
+                    cf.onImport(e.target.files[0])
+                }}/>
+                <Button onClick={() => {
+                    // @ts-ignore
+                    document.getElementById("file").click()
+                }}> Import </Button>
             </GridToolbarContainer>
         </>
     )
@@ -75,6 +85,11 @@ const ItemInfo = (props:ItemInfoProps) => {
                             const newData = items.filter(item => selectionModel.indexOf(item.id) < 0);
                             console.log("Remove " + JSON.stringify(selectionModel));
                             setItems([...newData])
+                        },
+                        onImport: (file:File) => {
+                            readXlsxFile(file).then((rows) => {
+                                console.log("Read " + rows.length + " rows")
+                            })
                         }
                     })
                 }}
