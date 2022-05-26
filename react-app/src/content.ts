@@ -23,10 +23,23 @@ chrome.runtime.onMessage.addListener(
 );
 
 async function startFillForm(invoices:Invoice[], sendResponse:(response:Progress)=>void) {
-    if (window.location.hostname !== 'hoadon789.com') {
-        sendResponse({ error : "Invalid website", message: "Invalid website"});
+    const website = "https://hoadon78.sesgroup.vn/hddt/main/einvoices/init";
+    if (window.location.hostname !== website) {
+        sendResponse({ error : "Invalid website", message: "Please navigate to https://hoadon78.sesgroup.vn/hddt/main/einvoices/init first"});
         return
     }
+
+    const createBtn = document.querySelector('[data-action="einvoice-cre"]');
+    if (createBtn != null) {
+        // @ts-ignore
+        createBtn.click();
+    } else {
+        sendResponse({ error : "Invalid website", message: "Button einvoice-cre not found"});
+    }
+
+
+
+
 
     document.getElementsByTagName("a");
     // Begin fill data & feed back progress

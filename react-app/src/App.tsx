@@ -19,12 +19,13 @@ import InvoiceInfo from "./components/InvoiceInfo";
 import {Paper} from "@mui/material";
 import {DataGrid, GridCellParams, GridColumns, GridRowsProp} from "@mui/x-data-grid";
 import Alert from "@mui/material/Alert/Alert";
-import {Invoice} from "./models/Invoice";
+import {Invoice, InvoiceXLSXFirstRow, InvoiceXLSXRow} from "./models/Invoice";
 import {Progress} from "./models/Progress";
+import {VNDReader} from "./services/VNDReader";
 
 
 const splitInvoice = (customers:Customer[], items:Item[]) => {
-    const invoices:Invoice[] = customers.map(c => { return  {customer: c, items: []}});
+    const invoices:Invoice[] = customers.map(c => { return  {customer: c, items: [], totalMoney: 0}});
     const customerCount = customers.length;
     for (const item of items) {
         if (item.quantity > 0) {
@@ -39,13 +40,76 @@ const splitInvoice = (customers:Customer[], items:Item[]) => {
             }
         }
     }
+
+    // Calculate Sum
+    for (const invoice of invoices) {
+        invoice.totalMoney = invoice.items.reduce((partialSum, item) => partialSum + item.quantity * item.price, 0);
+    }
     return invoices;
 };
+
+const exportToXLSXData = (invoices:Invoice[]) => {
+    const vndReader = new VNDReader();
+    const rows:InvoiceXLSXRow[] = [];
+    for (const invoice of invoices) {
+        for (let i = 0; i < invoice.items.length; i++) {
+            const item = invoice.items[i];
+            const tax = 10;
+            const thanhTien =  item.quantity * item.price;
+            const timestamp = new Date().getTime();
+            const row: InvoiceXLSXRow = {
+                id: timestamp + "_" + i,
+                contractCode: timestamp + "_" + i,
+                itemName: item.name,
+                itemOrder: i + 1,
+                thanhTien: thanhTien,
+                itemType: 1,
+                price: item.price,
+                quantity: item.quantity,
+                tax: tax,
+                unitType: item.unit,
+                tongTien: tax * thanhTien / 100 + thanhTien,
+                tienThue: tax * thanhTien / 100
+            };
+
+            if (i === 0) {
+                const firstRow:InvoiceXLSXFirstRow = {
+                    ...row,
+                    currency: "VND",
+                    customerAddress: invoice.customer.address,
+                    customerBankAcct: "",
+                    customerBankName: "",
+                    customerCode: "",
+                    customerFirm: "",
+                    customerMail: "",
+                    customerName: invoice.customer.name,
+                    customerPhone: invoice.customer.phone || '',
+                    paymentType: 3,
+                    taxNumber: "",
+                    tygia: 1,
+                    tongTienTruocThue: invoice.totalMoney,
+                    tongTienThue: tax * invoice.totalMoney / 100,
+                    tongTienDaCoThue: invoice.totalMoney + invoice.totalMoney * tax / 100,
+                    moneyAsText: ""
+                };
+                firstRow.moneyAsText = vndReader.doc(firstRow.tongTienDaCoThue);
+                rows.push(firstRow);
+            } else {
+                rows.push(row)
+            }
+
+        }
+    }
+
+    return rows;
+};
+
 
 function App() {
     const [items, setItems] = useState<Item[]>([]);
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [xlsxData, setXLSXData] = useState<InvoiceXLSXRow[]>([]);
     const [progress, setProgress] = useState<Progress|null>(null);
     const [enable, setEnable] = useState<boolean>(true);
 
@@ -66,11 +130,13 @@ function App() {
                     <div style={{height: '1em'}}/>
                     <Button variant="contained" color={"info"} onClick={e => {
                         const invoices:Invoice[] = splitInvoice(customers, items);
-                        setInvoices(invoices)
+                        const xlsxData:InvoiceXLSXRow[] = exportToXLSXData(invoices);
+                        setInvoices(invoices);
+                        setXLSXData(xlsxData);
                     }}> SPLIT </Button>
                 </Alert>
                 <Paper style={{marginBottom: 10}}>
-                    <InvoiceInfo invoices={invoices} />
+                    <InvoiceInfo invoices={invoices} xlsxData={xlsxData} />
                 </Paper>
                 <Typography variant="h5">Step 4. Start Auto Fill Form</Typography>
                 <div>
