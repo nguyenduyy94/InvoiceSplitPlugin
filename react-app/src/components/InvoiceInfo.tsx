@@ -28,6 +28,8 @@ import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
 import Alert from "@mui/material/Alert";
 import {Progress} from "../models/Progress";
+import {stream} from "exceljs";
+const XLSX = require("xlsx");
 
 
 interface InvoiceInfoProps {
@@ -46,6 +48,8 @@ function a11yProps(index: number) {
         'aria-controls': `vertical-tabpanel-${index}`,
     };
 }
+
+
 
 const InvoiceInfo = (props: InvoiceInfoProps) => {
 
@@ -129,24 +133,25 @@ const InvoiceInfo = (props: InvoiceInfoProps) => {
             <Typography variant="h6" ml={2}> Review Splitted Invoices</Typography>
             </div>
 
-            <div style={{height: 300}}>
-                <DataGrid
-                    // You have to either give a height to the container of the DataGrid or set the autoHeight prop of the DataGrid to true. Otherwise, it does not know which size to take.
-                    disableSelectionOnClick
-                    rows={props.xlsxData}
-                    columns={exportColums}
-                    experimentalFeatures={{ newEditingApi: true }}
-                    isCellEditable={(params: GridCellParams) => false}
-                    density="compact"
-                    components={{
-                        Toolbar: () => (
-                            <GridToolbarContainer>
-                                <GridToolbarExport />
-                            </GridToolbarContainer>
-                        ),
-                    }}
-                />
-            </div>
+            {/*<div style={{height: 300}}>*/}
+            {/*    <DataGrid*/}
+            {/*        // You have to either give a height to the container of the DataGrid or set the autoHeight prop of the DataGrid to true. Otherwise, it does not know which size to take.*/}
+            {/*        disableSelectionOnClick*/}
+            {/*        rows={props.xlsxData}*/}
+            {/*        columns={exportColums}*/}
+            {/*        experimentalFeatures={{ newEditingApi: true }}*/}
+            {/*        isCellEditable={(params: GridCellParams) => false}*/}
+            {/*        density="compact"*/}
+            {/*        components={{*/}
+            {/*            Toolbar: () => (*/}
+            {/*                <GridToolbarContainer>*/}
+
+
+            {/*                </GridToolbarContainer>*/}
+            {/*            ),*/}
+            {/*        }}*/}
+            {/*    />*/}
+            {/*</div>*/}
 
             {props.invoices.map((invoice:Invoice, index) => {
                 return (

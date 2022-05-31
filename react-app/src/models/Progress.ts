@@ -1,5 +1,5 @@
 export interface Progress {
     percent?: number,
     message: string,
-    error?: string,
+    error?: string|null,
 }

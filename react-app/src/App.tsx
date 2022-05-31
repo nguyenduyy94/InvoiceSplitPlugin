@@ -22,6 +22,9 @@ import Alert from "@mui/material/Alert/Alert";
 import {Invoice, InvoiceXLSXFirstRow, InvoiceXLSXRow} from "./models/Invoice";
 import {Progress} from "./models/Progress";
 import {VNDReader} from "./services/VNDReader";
+import {write, readFile, writeFileXLSX, writeFile, read} from "xlsx";
+const XLSX = require("xlsx");
+
 
 
 const splitInvoice = (customers:Customer[], items:Item[]) => {
@@ -51,15 +54,16 @@ const splitInvoice = (customers:Customer[], items:Item[]) => {
 const exportToXLSXData = (invoices:Invoice[]) => {
     const vndReader = new VNDReader();
     const rows:InvoiceXLSXRow[] = [];
-    for (const invoice of invoices) {
+    for (let stt = 0; stt < invoices.length; stt++) {
+        const invoice = invoices[stt];
+        const timestamp = new Date().getTime();
         for (let i = 0; i < invoice.items.length; i++) {
             const item = invoice.items[i];
             const tax = 10;
             const thanhTien =  item.quantity * item.price;
-            const timestamp = new Date().getTime();
             const row: InvoiceXLSXRow = {
                 id: timestamp + "_" + i,
-                contractCode: timestamp + "_" + i,
+                contractCode: stt + 1,
                 itemName: item.name,
                 itemOrder: i + 1,
                 thanhTien: thanhTien,
@@ -104,6 +108,73 @@ const exportToXLSXData = (invoices:Invoice[]) => {
     return rows;
 };
 
+const downloadSheet = (data:InvoiceXLSXRow[]) => {
+    const worksheet = XLSX.utils.json_to_sheet(data, {
+        header: ["contractCode","taxNumber",'customerName','customerFirm','customerAddress','customerMail','customerPhone',
+            'customerBankAcct','customerBankName','paymentType','currency','itemOrder','itemName','unitType','quantity','price',
+            'thanhTien','tax','tienThue','tongTien','itemType','tongTienTruocThue','tygia','tongTienThue','tongTienDaCoThue','moneyAsText','customerCode'],
+    });
+    const workbook = XLSX.utils.book_new();
+
+    const header = ["MaHD(*)",'MaSoThue',
+        'TenNguoiMua','TenDonVi','DiaChiKhachHang','MailKhachHang','SDTKhachHang','SoTaiKhoan',
+        'TenNganHang',
+        'HinhThucThanhToan(*)',
+        'LoaiTien(*)',
+        'STT(*)',
+        'TenHangHoa',
+        'DonViTinh',
+        'SoLuong',
+        'DonGia',
+        'ThanhTien(*)',
+        'ThueSuat(%)(*)',
+        'TienThue(*)',
+        'TongTien(*)',
+        'TinhChat(*)',
+        'TongTienTruocThue(*)',
+        'TyGia(*)',
+        'Tong tien thue(*)',
+        'Tong tien da co thue(*)',
+        'TTBangChu(*)',
+        'Ma KH'];
+
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "List_HD");
+    XLSX.utils.book_append_sheet(workbook, null, "GhiChu");
+    workbook.Sheets['List_HD']['A1'].v = "MaHD(*)";
+    workbook.Sheets['List_HD']['B1'].v = "MaSoThue";
+    workbook.Sheets['List_HD']['C1'].v = "TenNguoiMua";
+    workbook.Sheets['List_HD']['D1'].v = "TenDonVi";
+    workbook.Sheets['List_HD']['E1'].v = "DiaChiKhachHang";
+    workbook.Sheets['List_HD']['F1'].v = "MailKhachHang";
+    workbook.Sheets['List_HD']['G1'].v = "SDTKhachHang";
+    workbook.Sheets['List_HD']['H1'].v = "SoTaiKhoan";
+    workbook.Sheets['List_HD']['I1'].v = "TenNganHang";
+    workbook.Sheets['List_HD']['J1'].v = "HinhThucThanhToan(*)";
+    workbook.Sheets['List_HD']['K1'].v = "LoaiTien(*)";
+    workbook.Sheets['List_HD']['L1'].v = "STT(*)";
+    workbook.Sheets['List_HD']['M1'].v = "TenHangHoa";
+    workbook.Sheets['List_HD']['N1'].v = "DonViTinh";
+    workbook.Sheets['List_HD']['O1'].v = "SoLuong";
+    workbook.Sheets['List_HD']['P1'].v = "DonGia";
+    workbook.Sheets['List_HD']['Q1'].v = "ThanhTien(*)";
+    workbook.Sheets['List_HD']['R1'].v = "ThueSuat(%)(*)";
+    workbook.Sheets['List_HD']['S1'].v = "TienThue(*)";
+    workbook.Sheets['List_HD']['T1'].v = "TongTien(*)";
+    workbook.Sheets['List_HD']['U1'].v = "TinhChat(*)";
+    workbook.Sheets['List_HD']['V1'].v = "TongTienTruocThue(*)";
+    workbook.Sheets['List_HD']['W1'].v = "TyGia(*)";
+    workbook.Sheets['List_HD']['X1'].v = "Tong tien thue(*)";
+    workbook.Sheets['List_HD']['Y1'].v = "TTong tien da co thue(*)";
+    workbook.Sheets['List_HD']['Z1'].v = "TTBangChu(*)";
+    workbook.Sheets['List_HD']['AA1'].v = "Ma KH";
+
+    XLSX.writeFile(workbook, "HD-TT78.xlsx");
+
+};
+
+
+
 
 function App() {
     const [items, setItems] = useState<Item[]>([]);
@@ -126,7 +197,7 @@ function App() {
                 </Paper>
                 <Typography variant="h5">Step 3. Split Invoices </Typography>
                 <Alert severity="info">
-                    Press GENERATE to produce Invoices from Customer & Items table. Generated data will be used to fill forms automatically!
+                    Press SPLIT to produce Invoices from Customer & Items table. Generated data will be used to fill forms automatically!
                     <div style={{height: '1em'}}/>
                     <Button variant="contained" color={"info"} onClick={e => {
                         const invoices:Invoice[] = splitInvoice(customers, items);
@@ -137,6 +208,10 @@ function App() {
                 </Alert>
                 <Paper style={{marginBottom: 10}}>
                     <InvoiceInfo invoices={invoices} xlsxData={xlsxData} />
+                    <Button color={"info"} onClick={e => {
+                        // TODO: Import feature work weird !!
+                        //downloadSheet(xlsxData)
+                    }}> EXPORT </Button>
                 </Paper>
                 <Typography variant="h5">Step 4. Start Auto Fill Form</Typography>
                 <div>

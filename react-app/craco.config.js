@@ -1,3 +1,5 @@
+const xlsxLoader = require('webpack-xlsx-loader');
+
 module.exports = {
     webpack: {
         configure: (webpackConfig, {env, paths}) => {
@@ -14,8 +16,15 @@ module.exports = {
                 optimization: {
                     ...webpackConfig.optimization,
                     runtimeChunk: false,
+                },
+                module: {
+                    ...webpackConfig.module,
+                    rules: [
+                        ...webpackConfig.module.rules,
+                        { test: /\.xlsx$/, loader: "webpack-xlsx-loader" }
+                    ]
                 }
             }
         },
-    }
+    },
 };
