@@ -30,17 +30,26 @@ const XLSX = require("xlsx");
 const splitInvoice = (customers:Customer[], items:Item[]) => {
     const invoices:Invoice[] = customers.map(c => { return  {customer: c, items: [], totalMoney: 0}});
     const customerCount = customers.length;
-    for (const item of items) {
-        if (item.quantity > 0) {
-            const avg = Math.floor(item.quantity / customerCount);
-            const last = item.quantity - ((customerCount - 1) * avg);
-            for (let i = 0; i < invoices.length; i++) {
-                if (i === invoices.length - 1) {
-                    invoices[i].items.push({...item, quantity: last})
-                } else {
-                    invoices[i].items.push({...item, quantity: avg})
-                }
-            }
+    // for (const item of items) {
+    //     if (item.quantity > 0) {
+    //         const avg = Math.floor(item.quantity / customerCount);
+    //         const last = item.quantity - ((customerCount - 1) * avg);
+    //         for (let i = 0; i < invoices.length; i++) {
+    //             if (i === invoices.length - 1) {
+    //                 invoices[i].items.push({...item, quantity: last})
+    //             } else {
+    //                 invoices[i].items.push({...item, quantity: avg})
+    //             }
+    //         }
+    //     }
+    // }
+
+    let customerIndex = 0;
+    for (let item of items) {
+        invoices[customerIndex].items.push(item);
+        customerIndex++;
+        if (customerIndex >= invoices.length) {
+            customerIndex = 0;
         }
     }
 
@@ -183,37 +192,43 @@ function App() {
     const [xlsxData, setXLSXData] = useState<InvoiceXLSXRow[]>([]);
     const [progress, setProgress] = useState<Progress|null>(null);
     const [enable, setEnable] = useState<boolean>(true);
+    const [hideInput, setHideInput] = useState<boolean>(false);
 
     return (
         <Provider store={store}>
             <div className="App">
-                <Typography variant="h5">Step 1. Input Customer data</Typography>
-                <Paper style={{marginBottom: 10}}>
-                    <CustomerInfo onChange={data => setCustomers(data)} />
-                </Paper>
-                <Typography variant="h5">Step 2. Input Items data</Typography>
-                <Paper style={{marginBottom: 10}}>
-                    <ItemInfo onChange={data => setItems(data)}/>
-                </Paper>
-                <Typography variant="h5">Step 3. Split Invoices </Typography>
-                <Alert severity="info">
-                    Press SPLIT to produce Invoices from Customer & Items table. Generated data will be used to fill forms automatically!
-                    <div style={{height: '1em'}}/>
-                    <Button variant="contained" color={"info"} onClick={e => {
-                        const invoices:Invoice[] = splitInvoice(customers, items);
-                        const xlsxData:InvoiceXLSXRow[] = exportToXLSXData(invoices);
-                        setInvoices(invoices);
-                        setXLSXData(xlsxData);
-                    }}> SPLIT </Button>
-                </Alert>
+                {!hideInput ? (
+                    <>
+                        <Typography variant="h5">Step 1. Input Customer data</Typography>
+                        <Paper style={{marginBottom: 10}}>
+                            <CustomerInfo onChange={data => setCustomers(data)} />
+                        </Paper>
+                        <Typography variant="h5">Step 2. Input Items data</Typography>
+                        <Paper style={{marginBottom: 10}}>
+                            <ItemInfo onChange={data => setItems(data)}/>
+                        </Paper>
+                        <Typography variant="h5">Step 3. Split Invoices </Typography>
+                        <Alert severity="info">
+                            Press SPLIT to produce Invoices from Customer & Items table. Generated data will be used to fill forms automatically!
+                            <div style={{height: '1em'}}/>
+                            <Button variant="contained" color={"info"} onClick={e => {
+                                const invoices:Invoice[] = splitInvoice(customers, items);
+                                const xlsxData:InvoiceXLSXRow[] = exportToXLSXData(invoices);
+                                setInvoices(invoices);
+                                setXLSXData(xlsxData);
+                                setHideInput(true);
+                            }}> SPLIT </Button>
+                        </Alert>
+                        <Typography variant="h5">Step 4. Start Auto Fill Form</Typography>
+                    </>
+                ) : (
+                    <Button onClick={e => {
+                        setHideInput(false)
+                    }}>Back</Button>
+                )}
                 <Paper style={{marginBottom: 10}}>
                     <InvoiceInfo invoices={invoices} xlsxData={xlsxData} />
-                    <Button color={"info"} onClick={e => {
-                        // TODO: Import feature work weird !!
-                        //downloadSheet(xlsxData)
-                    }}> EXPORT </Button>
                 </Paper>
-                <Typography variant="h5">Step 4. Start Auto Fill Form</Typography>
                 <div>
                     <Alert severity="warning">
                         For safety, please DON'T close this tab or perform any action on this tab after Start Auto Fill Form
