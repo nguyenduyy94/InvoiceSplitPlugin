@@ -128,9 +128,9 @@ const InvoiceInfo = (props: InvoiceInfoProps) => {
     };
 
     return (
-        <>
+        <div style={{height: 400, overflowY: "scroll"}}>
             <div>
-            <Typography variant="h6" ml={2}> Review Splitted Invoices</Typography>
+            <Typography variant="body1" ml={2}> Invoices</Typography>
             </div>
 
             {/*<div style={{height: 300}}>*/}
@@ -152,7 +152,6 @@ const InvoiceInfo = (props: InvoiceInfoProps) => {
             {/*        }}*/}
             {/*    />*/}
             {/*</div>*/}
-
             {props.invoices.map((invoice:Invoice, index) => {
                 return (
                     <div
@@ -179,7 +178,7 @@ const InvoiceInfo = (props: InvoiceInfoProps) => {
                     </div>
                 )
             })}
-        </>
+        </div>
     )
 };
 

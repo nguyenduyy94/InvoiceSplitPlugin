@@ -321,18 +321,12 @@ function App() {
                         {activeStep === 3 ? (
                             <>
                                 <Typography variant="body1">Step 4. Split Invoices & Auto Fill </Typography>
-                                <Alert severity="info">
-                                    Press SPLIT to produce Invoices from Customer & Items table. Generated data will be used to fill forms automatically!
-                                    <div style={{height: '1em'}}/>
-                                    <Button variant="contained" color={"info"} onClick={e => {
-                                        const invoices:Invoice[] = splitInvoice(customers, items, maSanPham);
-                                        // const xlsxData:InvoiceXLSXRow[] = exportToXLSXData(invoices);
-                                        setInvoices(invoices);
-                                        // setXLSXData(xlsxData);
-                                        setHideInput(true);
-                                    }}> SPLIT </Button>
-                                </Alert>
-                                <div>
+                                <Button variant="contained" color={"info"} onClick={e => {
+                                    const invoices:Invoice[] = splitInvoice(customers, items, maSanPham);
+                                    setInvoices(invoices);
+                                    setHideInput(true);
+                                }}> Generate Invoices Data </Button>
+                                <div style={{position: "fixed", bottom: 0, zIndex: 10}}>
                                     <Alert severity="warning">
                                         For safety, please DON'T close this tab or perform any action on this tab after Start Auto Fill Form
                                         <div style={{height: "1em"}}/>
@@ -346,16 +340,19 @@ function App() {
                                                 });
                                             });
                                         }}> Start Auto Fill Form </Button>
-                                        <Button size={"small"} onClick={e => {
-                                            chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
-                                                // @ts-ignore
-                                                chrome.tabs.sendMessage(tabs[0].id, {type: "stopFillForm", payload: invoices }, function (response:Progress) {
-                                                    console.log("Response " + JSON.stringify(response));
-                                                    setEnable(true);
-                                                });
-                                            });
+                                        {/*<Button size={"small"} onClick={e => {*/}
+                                        {/*    chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {*/}
+                                        {/*        // @ts-ignore*/}
+                                        {/*        chrome.tabs.sendMessage(tabs[0].id, {type: "stopFillForm", payload: invoices }, function (response:Progress) {*/}
+                                        {/*            console.log("Response " + JSON.stringify(response));*/}
+                                        {/*            setEnable(true);*/}
+                                        {/*        });*/}
+                                        {/*    });*/}
 
-                                        }}>Cancel</Button>
+                                        {/*}}>Cancel</Button>*/}
+                                    </Alert>
+                                    <Alert severity="info">
+                                        To Stop Automation, please close current tab.
                                     </Alert>
                                     {progress ? (
                                         <Alert severity={progress && !!progress.error ? "error" : "info"}>
