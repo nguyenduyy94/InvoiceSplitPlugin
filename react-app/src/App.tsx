@@ -25,6 +25,9 @@ import {VNDReader} from "./services/VNDReader";
 import {write, readFile, writeFileXLSX, writeFile, read} from "xlsx";
 import MaSanPhamTable from "./components/MaSanPhamTable";
 import {MaSanPham} from "./models/MaSanPham";
+import Stepper from "@mui/material/Stepper";
+import Step from "@mui/material/Step";
+import StepButton from "@mui/material/StepButton";
 const XLSX = require("xlsx");
 
 const ensureMaSanPham = (items:Item[], maSanPham:MaSanPham[]) => {
@@ -202,6 +205,11 @@ const downloadSheet = (data:InvoiceXLSXRow[]) => {
 };
 
 
+const steps = ['Danh sach khach hang', 'Ma San Pham', 'Danh sach hang hoa', 'Split & Auto Fill'];
+
+const totalSteps = () => {
+    return steps.length;
+};
 
 
 function App() {
@@ -213,78 +221,156 @@ function App() {
     const [progress, setProgress] = useState<Progress|null>(null);
     const [enable, setEnable] = useState<boolean>(true);
     const [hideInput, setHideInput] = useState<boolean>(false);
+    const [activeStep, setActiveStep] = useState<number>(0);
+    const [completed, setCompleted] = React.useState<{
+        [k: number]: boolean;
+    }>({});
+
+    const completedSteps = () => {
+        return Object.keys(completed).length;
+    };
+
+    const isLastStep = () => {
+        return activeStep === totalSteps() - 1;
+    };
+
+    const allStepsCompleted = () => {
+        return completedSteps() === totalSteps();
+    };
+
+    const handleNext = () => {
+        const newActiveStep =
+            isLastStep() && !allStepsCompleted()
+                ? // It's the last step, but not all steps have been completed,
+                  // find the first step that has been completed
+                steps.findIndex((step, i) => !(i in completed))
+                : activeStep + 1;
+        setActiveStep(newActiveStep);
+    };
+
+    const handleBack = () => {
+        setActiveStep((prevActiveStep) => prevActiveStep - 1);
+    };
+
+    const handleStep = (step: number) => () => {
+        setActiveStep(step);
+    };
+
+    const handleComplete = () => {
+        const newCompleted = completed;
+        newCompleted[activeStep] = true;
+        setCompleted(newCompleted);
+        handleNext();
+    };
+
+    const handleReset = () => {
+        setActiveStep(0);
+        setCompleted({});
+    };
 
     return (
         <Provider store={store}>
             <div className="App">
-                {!hideInput ? (
                     <>
-                        <Typography variant="h5">Step 1. Input Customer data</Typography>
-                        <Paper style={{marginBottom: 10}}>
-                            <CustomerInfo onChange={data => setCustomers(data)} />
-                        </Paper>
-                        <Typography variant="h5">Step 2. Input MaSanPham</Typography>
-                        <Paper style={{marginBottom: 10}}>
-                            <MaSanPhamTable onChange={data => setMaSanPham(data)} />
-                        </Paper>
-                        <Typography variant="h5">Step 3. Input Items data</Typography>
-                        <Paper style={{marginBottom: 10}}>
-                            <ItemInfo onChange={data => setItems(data)}/>
-                        </Paper>
-                        <Typography variant="h5">Step 4. Split Invoices </Typography>
-                        <Alert severity="info">
-                            Press SPLIT to produce Invoices from Customer & Items table. Generated data will be used to fill forms automatically!
-                            <div style={{height: '1em'}}/>
-                            <Button variant="contained" color={"info"} onClick={e => {
-                                const invoices:Invoice[] = splitInvoice(customers, items, maSanPham);
-                                // const xlsxData:InvoiceXLSXRow[] = exportToXLSXData(invoices);
-                                setInvoices(invoices);
-                                // setXLSXData(xlsxData);
-                                setHideInput(true);
-                            }}> SPLIT </Button>
-                        </Alert>
-                        <Typography variant="h5">Step 5. Start Auto Fill Form</Typography>
-                    </>
-                ) : (
-                    <Button onClick={e => {
-                        setHideInput(false)
-                    }}>Back</Button>
-                )}
-                <Paper style={{marginBottom: 10}}>
-                    <InvoiceInfo invoices={invoices} xlsxData={xlsxData} />
-                </Paper>
-                <div>
-                    <Alert severity="warning">
-                        For safety, please DON'T close this tab or perform any action on this tab after Start Auto Fill Form
-                        <div style={{height: "1em"}}/>
-                        <Button variant="contained" size={"small"} color="warning" disabled={invoices.length == 0 || !enable} onClick={e => {
-                            setEnable(false);
-                            chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
-                                // @ts-ignore
-                                chrome.tabs.sendMessage(tabs[0].id, {type: "startFillForm", payload: invoices }, function (response:Progress) {
-                                    console.log("Response " + JSON.stringify(response));
-                                    setProgress(response)
-                                });
-                            });
-                        }}> Start Auto Fill Form </Button>
-                        <Button size={"small"} onClick={e => {
-                            chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
-                                // @ts-ignore
-                                chrome.tabs.sendMessage(tabs[0].id, {type: "stopFillForm", payload: invoices }, function (response:Progress) {
-                                    console.log("Response " + JSON.stringify(response));
-                                    setEnable(true);
-                                });
-                            });
+                        <Stepper nonLinear activeStep={activeStep}>
+                            {steps.map((label, index) => (
+                                <Step key={label} completed={completed[index]}>
+                                    <StepButton color="inherit" onClick={handleStep(index)}>
+                                        {label}
+                                    </StepButton>
+                                </Step>
+                            ))}
+                        </Stepper>
+                        <div>
+                            <Button
+                                color="inherit"
+                                disabled={activeStep === 0}
+                                onClick={handleBack}
+                                sx={{ mr: 1 }}
+                            >
+                                Back
+                            </Button>
+                            <Button onClick={handleNext} sx={{ mr: 1 }}>
+                                Next
+                            </Button>
+                        </div>
+                        {activeStep === 0 ? (
+                            <>
+                                <Typography variant="body1">Step 1. Input Customer data</Typography>
+                                <Paper style={{marginBottom: 10}}>
+                                    <CustomerInfo onChange={data => setCustomers(data)} />
+                                </Paper>
+                            </>
+                        ) : null }
+                        {activeStep === 1 ? (
+                            <>
+                                <Typography variant="body1">Step 2. Input MaSanPham</Typography>
+                                <Paper style={{marginBottom: 10}}>
+                                    <MaSanPhamTable onChange={data => setMaSanPham(data)} />
+                                </Paper>
+                            </>
+                        ) : null}
+                        {activeStep === 2 ? (
+                            <>
+                                <Typography variant="body1">Step 3. Input Items data</Typography>
+                                <Paper style={{marginBottom: 10}}>
+                                <ItemInfo onChange={data => setItems(data)}/>
+                                </Paper>
+                            </>
+                        ) : null }
+                        {activeStep === 3 ? (
+                            <>
+                                <Typography variant="body1">Step 4. Split Invoices & Auto Fill </Typography>
+                                <Alert severity="info">
+                                    Press SPLIT to produce Invoices from Customer & Items table. Generated data will be used to fill forms automatically!
+                                    <div style={{height: '1em'}}/>
+                                    <Button variant="contained" color={"info"} onClick={e => {
+                                        const invoices:Invoice[] = splitInvoice(customers, items, maSanPham);
+                                        // const xlsxData:InvoiceXLSXRow[] = exportToXLSXData(invoices);
+                                        setInvoices(invoices);
+                                        // setXLSXData(xlsxData);
+                                        setHideInput(true);
+                                    }}> SPLIT </Button>
+                                </Alert>
+                                <div>
+                                    <Alert severity="warning">
+                                        For safety, please DON'T close this tab or perform any action on this tab after Start Auto Fill Form
+                                        <div style={{height: "1em"}}/>
+                                        <Button variant="contained" size={"small"} color="warning" disabled={invoices.length == 0 || !enable} onClick={e => {
+                                            setEnable(false);
+                                            chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+                                                // @ts-ignore
+                                                chrome.tabs.sendMessage(tabs[0].id, {type: "startFillForm", payload: invoices }, function (response:Progress) {
+                                                    console.log("Response " + JSON.stringify(response));
+                                                    setProgress(response)
+                                                });
+                                            });
+                                        }}> Start Auto Fill Form </Button>
+                                        <Button size={"small"} onClick={e => {
+                                            chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+                                                // @ts-ignore
+                                                chrome.tabs.sendMessage(tabs[0].id, {type: "stopFillForm", payload: invoices }, function (response:Progress) {
+                                                    console.log("Response " + JSON.stringify(response));
+                                                    setEnable(true);
+                                                });
+                                            });
 
-                        }}>Cancel</Button>
-                    </Alert>
-                    {progress ? (
-                        <Alert severity={progress && !!progress.error ? "error" : "info"}>
-                            {progress.message} - {progress.percent}%
-                            {progress.error}
-                        </Alert>
-                    ) : null}
-                </div>
+                                        }}>Cancel</Button>
+                                    </Alert>
+                                    {progress ? (
+                                        <Alert severity={progress && !!progress.error ? "error" : "info"}>
+                                            {progress.message} - {progress.percent}%
+                                            {progress.error}
+                                        </Alert>
+                                    ) : null}
+                                </div>
+                                <Paper style={{marginBottom: 10}}>
+                                    <InvoiceInfo invoices={invoices} xlsxData={xlsxData} />
+                                </Paper>
+                            </>
+                        ) : null}
+
+                    </>
             </div>
         </Provider>
     );
