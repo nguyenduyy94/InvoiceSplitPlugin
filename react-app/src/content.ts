@@ -14,7 +14,7 @@ const ADD_ITEM_DATA_ACTION = 'add-to-grid';
 const TABLE_ID = 'grid';
 const STT_NAME = 'STT';
 const TEN_HANG_HOA_NAME = 'ProductName';
-const MA_SP_NAME = 'ProductName';
+const MA_SP_NAME = 'ProductCode';
 const UNIT_NAME = 'Unit';
 const SOLUONG_NAME = 'Quantity';
 const DONGIA_NAME = 'Price';
@@ -70,7 +70,7 @@ async function startFillForm(invoices:Invoice[], sendResponse:(response:Progress
 
         await delay(5000);
 
-        const err = await fillInvoice(invoices[0]);
+        const err = await fillInvoice(invoice);
 
         if (err) {
             console.warn(err);
@@ -97,7 +97,7 @@ async function startFillForm(invoices:Invoice[], sendResponse:(response:Progress
             console.log({error: "Button " + MODAL_OK_TEXT + " not found", message: ""})
         } else {
             (okBtn as HTMLButtonElement).click();
-            await delay(5000);
+            await delay(10000);
         }
     }
 
@@ -238,6 +238,17 @@ const fillItem = async (row:Element, data:Item, index:number) => {
         return 'Can not find cell ' + TEN_HANG_HOA_NAME  + " at row " + index
     }
     await delay(2000);
+
+    const mspEle = row.querySelector('[name="' + MA_SP_NAME + '"]');
+    console.log("MaSanPham");
+    if (mspEle) {
+        (mspEle as HTMLInputElement).value = data.code
+        mspEle.dispatchEvent(keyboardEnterEvent);
+    } else {
+        return 'Can not find cell ' + MA_SP_NAME  + " at row " + index
+    }
+    await delay(2000);
+
 
     console.log("Unit");
     const unitEle = row.querySelector('[name="' + UNIT_NAME + '"]');

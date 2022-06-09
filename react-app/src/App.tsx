@@ -23,11 +23,30 @@ import {Invoice, InvoiceXLSXFirstRow, InvoiceXLSXRow} from "./models/Invoice";
 import {Progress} from "./models/Progress";
 import {VNDReader} from "./services/VNDReader";
 import {write, readFile, writeFileXLSX, writeFile, read} from "xlsx";
+import MaSanPhamTable from "./components/MaSanPhamTable";
+import {MaSanPham} from "./models/MaSanPham";
 const XLSX = require("xlsx");
 
+const ensureMaSanPham = (items:Item[], maSanPham:MaSanPham[]) => {
+    const sortedMaSanPham = maSanPham.map(item => {
+        return {...item, name: item.name.toLowerCase().replaceAll(" ", "") }
+    }).sort((a,b) => a.name > b.name ? 1 :-1);
 
+    for (let item of items) {
+        if (!item.code || item.code === '') {
+            const itemName = item.name.toLowerCase().replaceAll(" ", "");
+            for (const msp of sortedMaSanPham) {
+                if (msp.name === itemName) {
+                    item.code = msp.maSanPham;
+                    break
+                }
+            }
+        }
+    }
+};
 
-const splitInvoice = (customers:Customer[], items:Item[]) => {
+const splitInvoice = (customers:Customer[], items:Item[], maSanPham:MaSanPham[] ) => {
+    ensureMaSanPham(items, maSanPham);
     const invoices:Invoice[] = customers.map(c => { return  {customer: c, items: [], totalMoney: 0}});
     const customerCount = customers.length;
     // for (const item of items) {
@@ -188,6 +207,7 @@ const downloadSheet = (data:InvoiceXLSXRow[]) => {
 function App() {
     const [items, setItems] = useState<Item[]>([]);
     const [customers, setCustomers] = useState<Customer[]>([]);
+    const [maSanPham, setMaSanPham] = useState<MaSanPham[]>([]);
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [xlsxData, setXLSXData] = useState<InvoiceXLSXRow[]>([]);
     const [progress, setProgress] = useState<Progress|null>(null);
@@ -203,23 +223,27 @@ function App() {
                         <Paper style={{marginBottom: 10}}>
                             <CustomerInfo onChange={data => setCustomers(data)} />
                         </Paper>
-                        <Typography variant="h5">Step 2. Input Items data</Typography>
+                        <Typography variant="h5">Step 2. Input MaSanPham</Typography>
+                        <Paper style={{marginBottom: 10}}>
+                            <MaSanPhamTable onChange={data => setMaSanPham(data)} />
+                        </Paper>
+                        <Typography variant="h5">Step 3. Input Items data</Typography>
                         <Paper style={{marginBottom: 10}}>
                             <ItemInfo onChange={data => setItems(data)}/>
                         </Paper>
-                        <Typography variant="h5">Step 3. Split Invoices </Typography>
+                        <Typography variant="h5">Step 4. Split Invoices </Typography>
                         <Alert severity="info">
                             Press SPLIT to produce Invoices from Customer & Items table. Generated data will be used to fill forms automatically!
                             <div style={{height: '1em'}}/>
                             <Button variant="contained" color={"info"} onClick={e => {
-                                const invoices:Invoice[] = splitInvoice(customers, items);
-                                const xlsxData:InvoiceXLSXRow[] = exportToXLSXData(invoices);
+                                const invoices:Invoice[] = splitInvoice(customers, items, maSanPham);
+                                // const xlsxData:InvoiceXLSXRow[] = exportToXLSXData(invoices);
                                 setInvoices(invoices);
-                                setXLSXData(xlsxData);
+                                // setXLSXData(xlsxData);
                                 setHideInput(true);
                             }}> SPLIT </Button>
                         </Alert>
-                        <Typography variant="h5">Step 4. Start Auto Fill Form</Typography>
+                        <Typography variant="h5">Step 5. Start Auto Fill Form</Typography>
                     </>
                 ) : (
                     <Button onClick={e => {
