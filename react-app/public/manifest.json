@@ -1,5 +1,5 @@
 {
-  "name": "HoaDonAuto",
+  "name": "HoaDon78-Extension",
   "version": "1.0",
   "manifest_version": 3,
   "background": {
@@ -19,7 +19,7 @@
   ],
   "content_scripts": [
     {
-      "matches": ["*://*/*"],
+      "matches": ["https://hoadon78.sesgroup.vn/*"],
       "js": ["./static/js/content.js"],
       "run_at": "document_idle"
     }
