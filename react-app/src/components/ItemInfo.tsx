@@ -23,6 +23,7 @@ import readXlsxFile, {Row} from 'read-excel-file'
 
 interface ItemInfoProps {
     onChange: (items:Item[])=>void;
+    initRows?: Item[];
 }
 
 
@@ -58,7 +59,7 @@ const CustomItemToolbar = (cf:CustomToolbarProps) => {
 }
 
 const ItemInfo = (props:ItemInfoProps) => {
-    const [items, setItems] = useState<Item[]>([]);
+    const [items, setItems] = useState<Item[]>(props.initRows || []);
     const [selectionModel, setSelectionModel] = React.useState<GridSelectionModel>([]);
 
     const columns: GridColumns = [
@@ -81,14 +82,15 @@ const ItemInfo = (props:ItemInfoProps) => {
                 components={{
                     Toolbar: CustomItemToolbar({
                         onAdd: () => {
-                            setItems([...items, {id: new Date().getTime(), name: '', code: '' , quantity: 0, price: 0, unit: ''}])
-                            props.onChange(items);
+                            const newData = [...items, {id: new Date().getTime(), name: '', code: '' , quantity: 0, price: 0, unit: ''}];
+                            setItems(newData)
+                            props.onChange(newData);
                         },
                         onRemove: () => {
                             const newData = items.filter(item => selectionModel.indexOf(item.id) < 0);
                             console.log("Remove " + JSON.stringify(selectionModel));
                             setItems([...newData])
-                            props.onChange(items);
+                            props.onChange(newData);
                         },
                         onImport: (file:File) => {
                             readXlsxFile(file).then((rows) => {
@@ -115,7 +117,9 @@ const ItemInfo = (props:ItemInfoProps) => {
                 }}
                 processRowUpdate={(newRow: GridRowModel) => {
                     const updatedRow = { ...newRow, isNew: false };
-                    setItems(items.map((row) => (row.id === newRow.id ? updatedRow : row)));
+                    const newData = items.map((row) => (row.id === newRow.id ? updatedRow : row));
+                    setItems(newData);
+                    props.onChange(newData);
                     return updatedRow;
                 }}
                 checkboxSelection={true}

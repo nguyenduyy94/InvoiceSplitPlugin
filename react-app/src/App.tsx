@@ -300,7 +300,7 @@ function App() {
                             <>
                                 <Typography variant="body1">Step 1. Input Customer data</Typography>
                                 <Paper style={{marginBottom: 10}}>
-                                    <CustomerInfo onChange={data => setCustomers(data)} />
+                                    <CustomerInfo onChange={data => setCustomers(data)} initRows={[...customers]} />
                                 </Paper>
                             </>
                         ) : null }
@@ -316,7 +316,7 @@ function App() {
                             <>
                                 <Typography variant="body1">Step 3. Input Items data</Typography>
                                 <Paper style={{marginBottom: 10}}>
-                                <ItemInfo onChange={data => setItems(data)}/>
+                                <ItemInfo onChange={data => setItems(data)} initRows={[...items]}/>
                                 </Paper>
                             </>
                         ) : null }

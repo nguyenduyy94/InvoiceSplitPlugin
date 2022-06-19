@@ -17,6 +17,7 @@ import {Item} from "../models/Item";
 
 interface CustomerInfoProps {
     onChange: (customers:Customer[])=>void
+    initRows?: Customer[]
 }
 
 interface CustomToolbarProps {
@@ -50,7 +51,7 @@ const CustomToolbar = (cf:CustomToolbarProps) => {
 }
 
 const CustomerInfo = (props: CustomerInfoProps) => {
-    const [customers, setCustomers] = useState<Customer[]>([]);
+    const [customers, setCustomers] = useState<Customer[]>(props.initRows || []);
     const [selectionModel, setSelectionModel] = React.useState<GridSelectionModel>([]);
 
 
@@ -73,14 +74,15 @@ const CustomerInfo = (props: CustomerInfoProps) => {
                 components={{
                     Toolbar: CustomToolbar({
                         onAdd: () => {
-                            setCustomers([...customers, {id: new Date().getTime(), name: '', address: ''}])
-                            props.onChange(customers);
+                            const newData = [...customers, {id: new Date().getTime(), name: '', address: ''}];
+                            setCustomers(newData)
+                            props.onChange(newData);
                         },
                         onRemove: () => {
                             const newData = customers.filter(item => selectionModel.indexOf(item.id) < 0);
                             console.log("Remove " + JSON.stringify(selectionModel));
                             setCustomers([...newData])
-                            props.onChange(customers);
+                            props.onChange(newData);
                         },
                         onImport: (file:File) => {
                             readXlsxFile(file).then((rows) => {
