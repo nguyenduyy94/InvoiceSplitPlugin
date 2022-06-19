@@ -68,10 +68,12 @@ const splitInvoice = (customers:Customer[], items:Item[], maSanPham:MaSanPham[] 
 
     let customerIndex = 0;
     for (let item of items) {
-        invoices[customerIndex].items.push(item);
-        customerIndex++;
-        if (customerIndex >= invoices.length) {
-            customerIndex = 0;
+        if (item.quantity > 0) {
+            invoices[customerIndex].items.push(item);
+            customerIndex++;
+            if (customerIndex >= invoices.length) {
+                customerIndex = 0;
+            }
         }
     }
 
