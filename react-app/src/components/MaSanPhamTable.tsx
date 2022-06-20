@@ -114,7 +114,7 @@ const MaSanPhamTable = (props:MaSanPhamTableProps) => {
                         setItems(items.map((row) => (row.id === newRow.id ? updatedRow : row)));
                         return updatedRow;
                     }}
-                    checkboxSelection={true}
+                    checkboxSelection={false}
                     selectionModel={selectionModel}
                     onSelectionModelChange={(newSelectionModel) => {
                         setSelectionModel(newSelectionModel);

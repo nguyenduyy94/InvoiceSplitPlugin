@@ -32,15 +32,16 @@ const XLSX = require("xlsx");
 
 const ensureMaSanPham = (items:Item[], maSanPham:MaSanPham[]) => {
     const sortedMaSanPham = maSanPham.map(item => {
-        return {...item, name: item.name.toLowerCase().replaceAll(" ", "") }
+        return {...item, name: item.name.toLowerCase().replaceAll(/[^a-z0-9]/gi, "") }
     }).sort((a,b) => a.name > b.name ? 1 :-1);
 
     for (let item of items) {
         if (!item.code || item.code === '') {
-            const itemName = item.name.toLowerCase().replaceAll(" ", "");
+            const itemName = item.name.toLowerCase().replaceAll(/[^a-z0-9]/gi, "");
             for (const msp of sortedMaSanPham) {
                 if (msp.name === itemName) {
                     item.code = msp.maSanPham;
+                    item.name = msp.name;
                     break
                 }
             }
@@ -216,7 +217,9 @@ const totalSteps = () => {
 
 function App() {
     const [items, setItems] = useState<Item[]>([]);
+    const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
     const [customers, setCustomers] = useState<Customer[]>([]);
+    const [selectedCustomerIds, setSelectedCustomerIds] = useState<number[]>([]);
     const [maSanPham, setMaSanPham] = useState<MaSanPham[]>([]);
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [xlsxData, setXLSXData] = useState<InvoiceXLSXRow[]>([]);
@@ -300,7 +303,10 @@ function App() {
                             <>
                                 <Typography variant="body1">Step 1. Input Customer data</Typography>
                                 <Paper style={{marginBottom: 10}}>
-                                    <CustomerInfo onChange={data => setCustomers(data)} initRows={[...customers]} />
+                                    <CustomerInfo onChange={data => setCustomers(data)} initRows={[...customers]}
+                                                  onSelectedChange={(newSelected) => setSelectedCustomerIds(newSelected)}
+                                                  initSelection={selectedCustomerIds}
+                                    />
                                 </Paper>
                             </>
                         ) : null }
@@ -316,7 +322,11 @@ function App() {
                             <>
                                 <Typography variant="body1">Step 3. Input Items data</Typography>
                                 <Paper style={{marginBottom: 10}}>
-                                <ItemInfo onChange={data => setItems(data)} initRows={[...items]}/>
+                                <ItemInfo onChange={data => setItems(data)}
+                                          initRows={[...items]}
+                                          onSelectionChange={(ids) => setSelectedItemIds(ids)}
+                                          initSelection={selectedItemIds}
+                                />
                                 </Paper>
                             </>
                         ) : null }
@@ -324,7 +334,9 @@ function App() {
                             <>
                                 <Typography variant="body1">Step 4. Split Invoices & Auto Fill </Typography>
                                 <Button variant="contained" color={"info"} onClick={e => {
-                                    const invoices:Invoice[] = splitInvoice(customers, items, maSanPham);
+                                    const selectedCustomers = customers.filter(c => selectedCustomerIds.indexOf(c.id) >= 0);
+                                    const selectedItems = items.filter(i => selectedItemIds.indexOf(i.id) >= 0);
+                                    const invoices:Invoice[] = splitInvoice(selectedCustomers, selectedItems, maSanPham);
                                     setInvoices(invoices);
                                     setHideInput(true);
                                 }}> Generate Invoices Data </Button>

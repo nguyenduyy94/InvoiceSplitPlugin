@@ -24,6 +24,8 @@ import readXlsxFile, {Row} from 'read-excel-file'
 interface ItemInfoProps {
     onChange: (items:Item[])=>void;
     initRows?: Item[];
+    onSelectionChange: (ids:number[])=>void;
+    initSelection: number[]
 }
 
 
@@ -60,7 +62,7 @@ const CustomItemToolbar = (cf:CustomToolbarProps) => {
 
 const ItemInfo = (props:ItemInfoProps) => {
     const [items, setItems] = useState<Item[]>(props.initRows || []);
-    const [selectionModel, setSelectionModel] = React.useState<GridSelectionModel>([]);
+    const [selectionModel, setSelectionModel] = React.useState<GridSelectionModel>(props.initSelection || []);
 
     const columns: GridColumns = [
         { field: 'name', headerName: 'Name', width: 180, editable: true },
@@ -96,6 +98,7 @@ const ItemInfo = (props:ItemInfoProps) => {
                             readXlsxFile(file).then((rows) => {
                                 console.log("Read " + rows.length + " items")
                                 const result = [];
+                                const selectedIds:number[] = [];
                                 for (const row of rows) {
                                     if (typeof row[0] === 'number') { // row with ID
                                         const item:Item = {
@@ -106,11 +109,14 @@ const ItemInfo = (props:ItemInfoProps) => {
                                             price: Number.parseFloat(row[4].toString()),
                                             quantity: Number.parseInt(row[5].toString())
                                         };
-                                        result.push(item)
+                                        result.push(item);
+                                        selectedIds.push(item.id)
                                     }
                                 }
                                 setItems(result);
+                                setSelectionModel(selectedIds);
                                 props.onChange(result);
+                                props.onSelectionChange(selectedIds);
                             })
                         }
                     })
@@ -126,6 +132,7 @@ const ItemInfo = (props:ItemInfoProps) => {
                 selectionModel={selectionModel}
                 onSelectionModelChange={(newSelectionModel) => {
                     setSelectionModel(newSelectionModel);
+                    props.onSelectionChange(newSelectionModel as number[])
                 }}
                 density="compact"
             />

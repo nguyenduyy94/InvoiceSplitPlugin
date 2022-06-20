@@ -8,7 +8,7 @@ import readXlsxFile from 'read-excel-file'
 import {
     DataGrid, GridCallbackDetails, GridCellEditCommitParams,
     GridCellParams,
-    GridColumns, GridRowModel,
+    GridColumns, GridRowId, GridRowModel,
     GridRowsProp, GridSelectionModel,
     GridToolbarContainer, MuiBaseEvent, MuiEvent,
     useGridApiRef
@@ -17,7 +17,9 @@ import {Item} from "../models/Item";
 
 interface CustomerInfoProps {
     onChange: (customers:Customer[])=>void
+    onSelectedChange: (ids:number[])=>void
     initRows?: Customer[]
+    initSelection?: GridRowId[]
 }
 
 interface CustomToolbarProps {
@@ -52,7 +54,7 @@ const CustomToolbar = (cf:CustomToolbarProps) => {
 
 const CustomerInfo = (props: CustomerInfoProps) => {
     const [customers, setCustomers] = useState<Customer[]>(props.initRows || []);
-    const [selectionModel, setSelectionModel] = React.useState<GridSelectionModel>([]);
+    const [selectionModel, setSelectionModel] = React.useState<GridSelectionModel>(props.initSelection || []);
 
 
     const columns: GridColumns = [
@@ -88,6 +90,7 @@ const CustomerInfo = (props: CustomerInfoProps) => {
                             readXlsxFile(file).then((rows) => {
                                 console.log("Read " + rows.length + " customers");
                                 const result = [];
+                                const selected = []
                                 for (const row of rows) {
                                     if (typeof row[0] === 'number') { // row with ID
                                         const customer:Customer = {
@@ -96,9 +99,11 @@ const CustomerInfo = (props: CustomerInfoProps) => {
                                             address: row[2].toString(),
                                         };
                                         result.push(customer)
+                                        selected.push(customer.id)
                                     }
                                 }
                                 setCustomers(result);
+                                setSelectionModel(selected);
                                 props.onChange(result);
                             })
                         }
@@ -114,6 +119,7 @@ const CustomerInfo = (props: CustomerInfoProps) => {
                 selectionModel={selectionModel}
                 onSelectionModelChange={(newSelectionModel) => {
                     setSelectionModel(newSelectionModel);
+                    props.onSelectedChange(newSelectionModel as number[])
                 }}
                 density="compact"
             />
