@@ -65,7 +65,7 @@ const CustomerInfo = (props: CustomerInfoProps) => {
 
     return (
         <>
-            <div style={{height: 300}}>
+            <div style={{height: 500}}>
             <DataGrid
                  // You have to either give a height to the container of the DataGrid or set the autoHeight prop of the DataGrid to true. Otherwise, it does not know which size to take.
                 disableSelectionOnClick

@@ -314,7 +314,7 @@ function App() {
                             <>
                                 <Typography variant="body1">Step 2. Input MaSanPham</Typography>
                                 <Paper style={{marginBottom: 10}}>
-                                    <MaSanPhamTable onChange={data => setMaSanPham(data)} />
+                                    <MaSanPhamTable onChange={data => setMaSanPham(data)} initRows={maSanPham} />
                                 </Paper>
                             </>
                         ) : null}

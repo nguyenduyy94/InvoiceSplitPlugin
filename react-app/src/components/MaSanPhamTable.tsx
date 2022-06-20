@@ -24,6 +24,7 @@ import {MaSanPham} from "../models/MaSanPham";
 
 interface MaSanPhamTableProps {
     onChange: (items:MaSanPham[])=>void;
+    initRows?: MaSanPham[];
 }
 
 
@@ -59,7 +60,7 @@ const CustomItemToolbar = (cf:CustomToolbarProps) => {
 }
 
 const MaSanPhamTable = (props:MaSanPhamTableProps) => {
-    const [items, setItems] = useState<MaSanPham[]>([]);
+    const [items, setItems] = useState<MaSanPham[]>(props.initRows || []);
     const [selectionModel, setSelectionModel] = React.useState<GridSelectionModel>([]);
 
     const columns: GridColumns = [
@@ -69,7 +70,7 @@ const MaSanPhamTable = (props:MaSanPhamTableProps) => {
     ];
     return (
         <>
-            <div style={{height: 300}}>
+            <div style={{height: 500}}>
                 <DataGrid
                     // You have to either give a height to the container of the DataGrid or set the autoHeight prop of the DataGrid to true. Otherwise, it does not know which size to take.
                     disableSelectionOnClick
